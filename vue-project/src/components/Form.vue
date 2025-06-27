@@ -22,61 +22,51 @@
         </div>
       </form>
 
-      <!-- Right: Table -->
-      <div class="table-container" v-if="Studentlist.length > 0">
-        <h3>Student List</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>ID</th>
-              <th>DOB</th>
-              <th>Email</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(student, index) in Studentlist" :key="index">
-              <td>{{ student.name }}</td>
-              <td>{{ student.id }}</td>
-              <td>{{ student.dob }}</td>
-              <td>{{ student.mail }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <show-list :Studentlist="Studentlist"> </show-list>
+
     </div>
   </div>
 </template>
 
 <script>
+
+import { reactive } from 'vue';
+import showList from './showList.vue';
 export default {
-  data() {
-    return {
-      form: {
-        name: '',
-        id: '',
-        dob: '',
-        mail: '',
-      },
-      Studentlist: []
-    }
+  components: {
+    showList
   },
-  methods: {
-    addList() {
-      const { name, id, dob, mail } = this.form
+
+  setup() {
+    const Studentlist = reactive({ list: [] });
+    const form = reactive({
+      name: '', id: '', dob: '', mail: ''
+    })
+
+    function addList() {
+      const { name, id, dob, mail } = form
       if (name && id && dob && mail) {
-        this.Studentlist.push({ name, id, dob, mail })
-        this.reset()
+        Studentlist.list.push({ name, id, dob, mail })
+        reset()
       }
-    },
-    reset() {
-      this.form.name = ''
-      this.form.id = ''
-      this.form.dob = ''
-      this.form.mail = ''
+      else {
+        alert("All fields are required !")
+      }
+    }
+    function reset() {
+      form.name = ''
+      form.id = ''
+      form.dob = ''
+      form.mail = ''
+    }
+    return {
+      Studentlist, reset, addList, form
     }
   }
+
 }
+
+
 </script>
 
 <style scoped>
