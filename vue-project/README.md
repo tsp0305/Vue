@@ -27,3 +27,14 @@ npm run dev
 ```sh
 npm run build
 ```
+
+student list 
+id name mark - form,list
+
+template
+
+script - data(return),method,computed
+
+style
+
+reactivity
