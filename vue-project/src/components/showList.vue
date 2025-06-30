@@ -1,34 +1,41 @@
 <template>
-    <div class="container">
-        <div class="table-container" v-if="Studentlist.list.length > 0">
-            <h3>Student List</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>ID</th>
-                        <th>DOB</th>
-                        <th>Email</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="(student, index) in Studentlist.list" :key="index">
-                        <td>{{ student.name }}</td>
-                        <td>{{ student.id }}</td>
-                        <td>{{ student.dob }}</td>
-                        <td>{{ student.mail }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+    <div class="table-container" v-if="students.length > 0">
+        <h3>Student List</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Id</th>
+                    <th>DOB</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(student, index) in students" :key="index">
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.id }}</td>
+                    <td>{{ student.dob }}</td>
+                    <td>{{ student.mail }}</td>
+                    <td>
+                        <button @click="remove(index)">Delete</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
-
 </template>
 
 <script setup>
-defineProps({
-    Studentlist: Object
-})
+const props = defineProps({
+    students: Array
+});
+
+const emit = defineEmits(['delete-student']);
+
+function remove(index) {
+    emit('delete-student', index);
+}
 </script>
 
 

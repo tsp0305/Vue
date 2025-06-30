@@ -4,11 +4,11 @@
       <form @submit.prevent class="form-box">
         <h2>Student Registration</h2>
 
-        <label for="name">Student Name:</label>
+        <label for="name"> Name:</label>
         <input type="text" id="name" v-model="form.name" />
 
         <label for="id">Student ID:</label>
-        <input type="number" id="id" v-model="form.id" />
+        <input type="number" id="id" v-model="form.id" @input="blockNegative" />
 
         <label for="dob">Student DOB:</label>
         <input type="date" id="dob" v-model="form.dob" />
@@ -22,51 +22,75 @@
         </div>
       </form>
 
-      <show-list :Studentlist="Studentlist"> </show-list>
-
+      <!-- Pass full student list to show-list -->
+      <show-list :students="Studentlist.list" @delete-student="deleteStudent" />
     </div>
   </div>
 </template>
 
 <script>
-
 import { reactive } from 'vue';
 import showList from './showList.vue';
+
 export default {
   components: {
     showList
   },
-
   setup() {
     const Studentlist = reactive({ list: [] });
+
     const form = reactive({
-      name: '', id: '', dob: '', mail: ''
-    })
+      name: '',
+      id: '',
+      dob: '',
+      mail: ''
+    });
+
+    function blockNegative(event) {
+      const value = parseInt(event.target.value);
+      if (value < 0) {
+        alert('Negative value not allowed!');
+        form.id = '';
+      }
+    }
 
     function addList() {
-      const { name, id, dob, mail } = form
+      const { name, id, dob, mail } = form;
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
       if (name && id && dob && mail) {
-        Studentlist.list.push({ name, id, dob, mail })
-        reset()
+        Studentlist.list.push({ name, id, dob, mail });
+        reset();
+      }
+      else if (!emailPattern.test(mail)) {
+        alert("Invalid email address!")
       }
       else {
-        alert("All fields are required !")
+        alert('All fields are required!');
       }
     }
+
+    function deleteStudent(index) {
+      Studentlist.list.splice(index, 1);
+    }
+
     function reset() {
-      form.name = ''
-      form.id = ''
-      form.dob = ''
-      form.mail = ''
+      form.name = '';
+      form.id = '';
+      form.dob = '';
+      form.mail = '';
     }
+
     return {
-      Studentlist, reset, addList, form
-    }
+      Studentlist,
+      form,
+      reset,
+      addList,
+      deleteStudent,
+      blockNegative
+    };
   }
-
-}
-
-
+};
 </script>
 
 <style scoped>
