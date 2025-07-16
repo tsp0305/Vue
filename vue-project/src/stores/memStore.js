@@ -1,59 +1,71 @@
-import { defineStore } from "pinia";
+import { defineStore } from 'pinia'
+import memService from '@/services/memService'
 
-export const useMemStore = defineStore('mem', {
-
+export const useMemStore = defineStore('members', {
     state: () => ({
-        list: [
-            {
-                "Name": "Sundar Narayanan",
-                "Email": "sundar.narayanan@admin.edu",
-                "Phone": "9000001111",
-                "Role": "Admin"
-            },
-            {
-                "Name": "Nandhini Bose",
-                "Email": "nandhini.bose@admin.edu",
-                "Phone": "9333344444",
-                "Role": "Admin"
-            },
-            {
-                "Name": "Ravi Krishnan",
-                "Email": "ravi.krishnan@institute.edu",
-                "Phone": "9811122233",
-                "Role": "Staff"
-            },
-            {
-                "Name": "Lavanya Raj",
-                "Email": "lavanya.raj@institute.edu",
-                "Phone": "9977886655",
-                "Role": "Staff"
-            },
-            {
-                "Name": "Sneha Iyer",
-                "Email": "sneha.iyer@student.edu",
-                "Phone": "9867543210",
-                "Role": "Student"
-            },
-            {
-                "Name": "Vikram Rao",
-                "Email": "vikram.rao@student.edu",
-                "Phone": "9843216780",
-                "Role": "Student"
-            }
-
-        ],
+        list: [],
+        isLoading: false,
+        error: null,
     }),
 
     actions: {
-        addMem(mem) {
-            this.list.push(mem)
+        async fetchMem() {
+            this.isLoading = true
+            this.error = null
+            try {
+                const response = await memService.getAll()
+                this.list = Array.isArray(response.data?.data)
+                    ? response.data.data.map(({ mem_id, name, email, phone, role }) => ({
+                        id: mem_id,
+                        Name: name,
+                        Email: email,
+                        Phone: phone,
+                        Role: role,
+                    }))
+                    : []
+            } catch (err) {
+                this.error = err
+                console.error('Error fetching members:', err)
+            } finally {
+                this.isLoading = false
+            }
         },
-        updateMem(index, mem) {
-            this.list[index] = mem
-        },
-        deleteMem(index) {
-            this.list.splice(index, 1)
-        },
-    },
-})
 
+        async addMem(data) {
+            try {
+                await memService.add({
+                    name: data.Name,
+                    email: data.Email,
+                    phone: data.Phone,
+                    role: data.Role,
+                })
+                await this.fetchMem()
+            } catch (err) {
+                console.error('Error adding member:', err)
+            }
+        },
+
+        async updateMem(id, data) {
+            try {
+                await memService.update(id, {
+                    name: data.Name,
+                    email: data.Email,
+                    phone: data.Phone,
+                    role: data.Role,
+                })
+                await this.fetchMem()
+            } catch (err) {
+                console.error('Error updating member:', err)
+            }
+        },
+
+        async deleteMem(id) {
+            try {
+                await memService.delete(id)
+                await this.fetchMem()
+            } catch (err) {
+                console.error('Error deleting member:', err)
+            }
+        }
+    }
+})

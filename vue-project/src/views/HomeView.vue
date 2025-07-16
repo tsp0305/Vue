@@ -1,13 +1,3 @@
-<script>
-import sidebar from '../components/sidebar.vue'
-
-export default {
-  components: {
-    sidebar
-  }
-}
-</script>
-
 <template>
   <div class="home-container">
     <!-- Navbar -->
@@ -20,14 +10,16 @@ export default {
     </nav>
 
     <div class="main-content">
-
-
       <div class="content-area">
         <router-view />
       </div>
     </div>
   </div>
 </template>
+
+<script>
+export default {}
+</script>
 
 <style scoped>
 .home-container {
@@ -81,7 +73,5 @@ export default {
   padding: 1rem;
   width: 220px;
   min-height: calc(100vh - 60px);
-  /* subtract navbar height */
-  border-radius: 0;
 }
 </style>

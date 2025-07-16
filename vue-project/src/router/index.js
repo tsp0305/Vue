@@ -1,8 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from "../views/HomeView.vue"
-import Form from "../components/Form.vue"
-import memForm from "../components/memForm.vue"
-
+import HomeView from '../views/HomeView.vue'
+import Form from '../views/Form.vue'
+import memForm from '../views/memForm.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -20,11 +19,8 @@ const router = createRouter({
           component: memForm
         }
       ]
-    },
-
-
-
-  ],
+    }
+  ]
 })
 
 export default router

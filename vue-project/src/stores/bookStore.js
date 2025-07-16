@@ -5,37 +5,47 @@ export const useBookStore = defineStore('books', {
 
     state: () => ({
         list: [],
-        isloading: false,
+        isLoading: false,
         error: null
     }),
 
     actions: {
         async fetchBook() {
-            this.isloading = true
+            this.isLoading = true
             this.error = null
             try {
                 const response = await bookService.getAll()
-                this.list = response.data
+                this.list = Array.isArray(response.data?.data)
+                    ? response.data.data.map(({ bid, title, author, copies_total, copies_available }) => ({
+                        id: bid,
+                        title,
+                        author,
+                        copies_total,
+                        copies_available
+                    }))
+                    : []
             } catch (err) {
                 this.error = err
-                console.log('error fetching book', err)
+                console.error('Error fetching books:', err)
             } finally {
-                this.loading = false
+                this.isLoading = false
             }
         },
+
         async addBook(book) {
             try {
                 await bookService.add(book)
-                this.fetchBook()
+                await this.fetchBook()
             } catch (err) {
                 console.error('Error adding book:', err)
             }
         },
 
-        async updateBook(id, book) {
+        async updateBook(book) {
             try {
-                await bookService.update(id, book)
-                this.fetchBook()
+                const { bid, ...bookData } = book  // Extract ID from book data
+                await bookService.update(bid, bookData)  // ✅ Pass ID separately
+                await this.fetchBook()
             } catch (err) {
                 console.error('Error updating book:', err)
             }
@@ -44,12 +54,10 @@ export const useBookStore = defineStore('books', {
         async deleteBook(id) {
             try {
                 await bookService.delete(id)
-                this.fetchBook()
+                await this.fetchBook()
             } catch (err) {
                 console.error('Error deleting book:', err)
             }
         }
-
-    },
+    }
 })
-

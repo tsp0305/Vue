@@ -26,11 +26,11 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(item, index) in paginatedList" :key="item.bid">
+                <tr v-for="(item, index) in paginatedList" :key="item.id">
                     <td v-for="(field, i) in table.header" :key="i">{{ item[field] }}</td>
                     <td>
-                        <button @click="$emit('edit-item', { index: item.bid, i: item })">Edit</button>
-                        <button @click="$emit('delete-item', item.bid)">Delete</button>
+                        <button @click="$emit('edit-item', item)">Edit</button>
+                        <button @click="$emit('delete-item', item.id)">Delete</button>
                     </td>
                 </tr>
             </tbody>
@@ -85,7 +85,7 @@ const filteredList = computed(() => {
         )
     )
 
-    return copy.sort((a, b) => a.bid - b.bid)
+    return copy.sort((a, b) => a.id - b.id)
 })
 
 const totalpg = computed(() => {
