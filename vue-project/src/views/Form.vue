@@ -187,7 +187,6 @@ export default {
   border: 2px solid #3498db;
   max-width: 450px;
   width: 100%;
-  box-shadow: 0 0 10px rgba(52, 152, 219, 0.7);
 }
 
 .form-box h2 {
