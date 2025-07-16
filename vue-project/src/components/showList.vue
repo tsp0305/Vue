@@ -1,74 +1,166 @@
 <template>
-    <div class="table-container" v-if="students.length > 0">
-        <h3>Student List</h3>
+    <div class="wrapper">
+
+        <div class="controls">
+            <label>Sort:</label>
+            <input type="radio" id="asc" value="asc" v-model="sortOrder" />
+            <label for="asc">Asc</label>
+            <input type="radio" id="desc" value="desc" v-model="sortOrder" />
+            <label for="desc">Desc</label>
+
+            <input type="text" v-model="search" placeholder="Search..." />
+        </div>
+
+
         <table>
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Id</th>
-                    <th>DOB</th>
-                    <th>Email</th>
-                    <th>Actions</th>
+                    <th v-for="(head, index) in table.header" :key="index" @click="sortByColumn(head)"
+                        style="cursor: pointer">
+                        {{ head }}
+                        <span v-if="selectedOption === head">
+                            {{ sortOrder === 'asc' ? '▲' : '▼' }}
+                        </span>
+                    </th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(student, index) in students" :key="index">
-                    <td>{{ student.name }}</td>
-                    <td>{{ student.id }}</td>
-                    <td>{{ student.dob }}</td>
-                    <td>{{ student.mail }}</td>
+                <tr v-for="(item, index) in paginatedList" :key="item.bid">
+                    <td v-for="(field, i) in table.header" :key="i">{{ item[field] }}</td>
                     <td>
-                        <button @click="remove(index)">Delete</button>
+                        <button @click="$emit('edit-item', { index: item.bid, i: item })">Edit</button>
+                        <button @click="$emit('delete-item', item.bid)">Delete</button>
                     </td>
                 </tr>
             </tbody>
         </table>
+
+
+        <div class="pagination">
+            <button @click="previous" :disabled="curr === 1">Prev</button>
+            <span>Page {{ totalpg ? curr : 0 }} of {{ totalpg }}</span>
+            <button @click="next" :disabled="curr === totalpg">Next</button>
+        </div>
     </div>
 </template>
 
 <script setup>
+import { watch } from 'vue'
+import { ref, computed } from 'vue'
+
 const props = defineProps({
-    students: Array
-});
+    table: Object
+})
 
-const emit = defineEmits(['delete-student']);
+const sortOrder = ref('')
+const selectedOption = ref('')
+const search = ref('')
+const curr = ref(1)
+const nrow = 3
 
-function remove(index) {
-    emit('delete-student', index);
+watch(search, () => {
+    curr.value = 1
+})
+
+function sortByColumn(column) {
+    if (selectedOption.value === column) {
+        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+    } else {
+        selectedOption.value = column
+        sortOrder.value = 'asc'
+    }
+}
+
+const filteredList = computed(() => {
+
+    let copy = props.table.list.map((item) => ({ ...item }))
+
+
+    const val = search.value.toLowerCase()
+
+    copy = copy.filter(item =>
+        Object.values(item).some(i =>
+            String(i).toLowerCase().includes(val)
+        )
+    )
+
+    return copy.sort((a, b) => a.bid - b.bid)
+})
+
+const totalpg = computed(() => {
+
+    return Math.ceil(filteredList.value.length / nrow)
+})
+
+const paginatedList = computed(() => {
+
+    const start = (curr.value - 1) * nrow
+    const end = start + nrow
+    let paged = filteredList.value.slice(start, end)
+
+    if (sortOrder.value && selectedOption.value) {
+        paged.sort((a, b) => {
+            const valA = a[selectedOption.value]
+            const valB = b[selectedOption.value]
+            return sortOrder.value === 'asc'
+                ? String(valA).localeCompare(String(valB))
+                : String(valB).localeCompare(String(valA))
+        })
+    }
+
+    return paged
+})
+
+function previous() {
+    if (curr.value > 1) curr.value--
+}
+
+function next() {
+    if (curr.value < totalpg.value) curr.value++
 }
 </script>
 
-
-
-
-
 <style scoped>
-.table-container {
-    flex: 1;
-    min-width: 500px;
-    overflow-x: auto;
+.wrapper {
+    font-family: sans-serif;
+    padding: 10px;
+}
+
+.controls {
+    margin-bottom: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    background-color: #2c2c2c;
-    box-shadow: 0 0 10px hsla(157, 98%, 48%, 0.87);
-
+    margin-bottom: 10px;
 }
 
 th,
 td {
-    padding: 0.50rem;
+    border: 1px solid #ccc;
+    padding: 8px;
     text-align: left;
-    border-bottom: 1px solid #444;
 }
 
 th {
-    background-color: #3a3a3a;
+    background-color: #1a1818;
 }
 
-tr:hover {
-    background-color: #383838;
+button {
+    margin-right: 5px;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+
+.pagination {
+    display: flex;
+    gap: 10px;
+    align-items: center;
 }
 </style>

@@ -1,108 +1,132 @@
 <template>
   <div class="container">
     <div class="content-wrapper">
+
+
       <form @submit.prevent class="form-box">
-        <h2>Student Registration</h2>
+        <h2>Book list</h2>
 
-        <label for="name"> Name:</label>
-        <input type="text" id="name" v-model="form.name" />
+        <label for="title">Book Title:</label>
+        <input type="text" id="title" v-model="form.Title" />
 
-        <label for="id">Student ID:</label>
-        <input type="number" id="id" v-model="form.id" @input="blockNegative" />
+        <label for="author">Author:</label>
+        <input type="text" id="author" v-model="form.Author" />
 
-        <label for="dob">Student DOB:</label>
-        <input type="date" id="dob" v-model="form.dob" />
-
-        <label for="mail">Student Email:</label>
-        <input type="email" id="mail" v-model="form.mail" />
+        <label for="status">Status:</label>
+        <select id="status" v-model="form.Status">
+          <option disabled="">Select Status</option>
+          <option value="Read">Read</option>
+          <option value="Unread">Unread</option>
+          <option value="reading">reading</option>
+        </select>
 
         <div class="btn-group">
-          <button @click="addList">Add Student</button>
+          <button @click="submitForm">{{ isEditing ? 'Update Book' : 'Add Book' }}</button>
           <button @click="reset" type="button">Reset</button>
         </div>
       </form>
 
-      <!-- Pass full student list to show-list -->
-      <show-list :students="Studentlist.list" @delete-student="deleteStudent" />
+      <show-list
+        :table="{ header: store.list.length ? Object.keys(store.list[0]) : ['Title', 'Author', 'Status'], list: store.list }"
+        @delete-item="deleteBook" @edit-item="editBook" @sortList="" />
     </div>
   </div>
 </template>
 
 <script>
-import { reactive } from 'vue';
-import showList from './showList.vue';
+import { reactive, ref, onMounted } from 'vue'
+import showList from './showList.vue'
+import { useBookStore } from '@/stores/bookStore'
+
 
 export default {
-  components: {
-    showList
-  },
+
+
+  components: { showList },
   setup() {
-    const Studentlist = reactive({ list: [] });
+
+    onMounted(() => {
+      store.fetchBook()
+    })
+
+    const store = useBookStore()
 
     const form = reactive({
-      name: '',
-      id: '',
-      dob: '',
-      mail: ''
-    });
+      Title: '',
+      Author: '',
+      Status: ''
+    })
 
-    function blockNegative(event) {
-      const value = parseInt(event.target.value);
-      if (value < 0) {
-        alert('Negative value not allowed!');
-        form.id = '';
+    const isEditing = ref(false)
+    const editIndex = ref(-1)
+
+
+    function submitForm() {
+      const payload = {
+        bookname: form.Title,
+        author: form.Author,
+        status: form.Status.toLowerCase()
+      }
+
+      if (isEditing.value) {
+        store.updateBook(editIndex.value, payload)
+      } else {
+        store.addBook(payload)
+      }
+
+      reset()
+    }
+
+    function deleteBook(index) {
+      store.deleteBook(index)
+      if (isEditing.value && editIndex.value === index) {
+        reset()
       }
     }
 
-    function addList() {
-      const { name, id, dob, mail } = form;
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    function editBook({ index, i }) {
+      form.title = i.bookname
+      form.Author = i.author
+      form.Status = i.status.charAt(0).toUpperCase() + i.status.slice(1)
+      editIndex.value = i.bid // your table returns full object
+      isEditing.value = true
+      Object.assign(form, i)
 
-      if (name && id && dob && mail) {
-        Studentlist.list.push({ name, id, dob, mail });
-        reset();
-      }
-      else if (!emailPattern.test(mail)) {
-        alert("Invalid email address!")
-      }
-      else {
-        alert('All fields are required!');
-      }
-    }
-
-    function deleteStudent(index) {
-      Studentlist.list.splice(index, 1);
     }
 
     function reset() {
-      form.name = '';
-      form.id = '';
-      form.dob = '';
-      form.mail = '';
+      form.Title = ''
+      form.Author = ''
+      form.Status = ''
+      isEditing.value = false
+      editIndex.value = -1
     }
 
     return {
-      Studentlist,
+      store,
       form,
+      isEditing,
+      editIndex,
       reset,
-      addList,
-      deleteStudent,
-      blockNegative
-    };
+      submitForm,
+      deleteBook,
+      editBook,
+    }
   }
-};
+}
 </script>
+
 
 <style scoped>
 .container {
-  border-color: aqua;
   background-color: #1e1e1e;
   color: #f0f0f0;
   min-height: 100vh;
-  padding: 2rem;
+  padding: 1rem;
   font-family: 'Segoe UI', sans-serif;
 }
 
+/* Flex layout */
 .content-wrapper {
   display: flex;
   gap: 2rem;
@@ -111,29 +135,30 @@ export default {
   flex-wrap: wrap;
 }
 
+/* Form styling */
 .form-box {
   background-color: #2c2c2c;
   padding: 1.5rem;
   border-radius: 10px;
-  border-color: rgb(23, 223, 156);
+  border: 2px solid #3498db;
   max-width: 450px;
   width: 100%;
-  box-shadow: 0 0 10px hsla(157, 98%, 48%, 0.87);
 }
 
 .form-box h2 {
   text-align: center;
   margin-bottom: 1rem;
-  border-color: aqua;
 }
 
+/* Input fields */
 label {
   display: block;
   margin: 0.5rem 0 0.25rem;
   font-weight: bold;
 }
 
-input {
+input,
+select {
   width: 100%;
   padding: 0.5rem;
   margin-bottom: 1rem;
@@ -143,10 +168,12 @@ input {
   color: white;
 }
 
-input:focus {
-  outline: 2px solid hsla(157, 98%, 48%, 0.87);
+input:focus,
+select:focus {
+  outline: 2px solid #3498db;
 }
 
+/* Buttons */
 .btn-group {
   display: flex;
   justify-content: space-between;
@@ -155,35 +182,35 @@ input:focus {
 button {
   padding: 0.5rem 1rem;
   border: none;
-  background-color: hsla(157, 98%, 48%, 0.87);
+  background-color: #3498db;
   color: white;
   border-radius: 5px;
   cursor: pointer;
   font-weight: bold;
-
 }
 
 button:hover {
-  background-color: hsla(157, 98%, 48%, 0.87);
+  background-color: #2980b9;
 }
 
+/* Table container */
 .table-container {
   flex: 1;
   min-width: 300px;
   overflow-x: auto;
 }
 
+/* Table styling */
 table {
-  width: 90%;
+  width: 100%;
   border-collapse: collapse;
   background-color: #2c2c2c;
-  box-shadow: 0 0 10px hsla(157, 98%, 48%, 0.87);
-
+  box-shadow: 0 0 10px rgba(52, 152, 219, 0.7);
 }
 
 th,
 td {
-  padding: 0.50rem;
+  padding: 0.5rem;
   text-align: left;
   border-bottom: 1px solid #444;
 }
