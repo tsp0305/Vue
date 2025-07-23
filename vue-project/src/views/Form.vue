@@ -87,13 +87,13 @@ export default {
         valid = false
       }
 
-      if (form.copiesTotal === null || form.copiesTotal === '' || form.copiesTotal < 0) {
-        errors.copiesTotal = 'Total copies must be 0 or more.'
+      if (form.copiesTotal < 1) {
+        errors.copiesTotal = 'Total copies must be 1 or more.'
         valid = false
       }
 
-      if (form.copiesAvailable === null || form.copiesAvailable === '' || form.copiesAvailable < 0) {
-        errors.copiesAvailable = 'Available copies must be 0 or more.'
+      if (form.copiesAvailable < 1) {
+        errors.copiesAvailable = 'Available copies must be 1 or more.'
         valid = false
       } else if (form.copiesAvailable > form.copiesTotal) {
         errors.copiesAvailable = 'Available copies cannot exceed total copies.'

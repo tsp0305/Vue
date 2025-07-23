@@ -25,6 +25,10 @@
                 </select>
                 <span class="error" v-if="errors.Role">{{ errors.Role }}</span>
 
+                <label for="password">Password:</label>
+                <input type="password" id="password" v-model="form.Password" :disabled="isEditing" />
+                <span class="error" v-if="errors.Password">{{ errors.Password }}</span>
+
                 <div class="btn-group">
                     <button type="submit">
                         {{ isEditing ? 'Update Member' : 'Add Member' }}
@@ -38,7 +42,7 @@
                     ? Object.keys(store.list[0])
                     : ['Name', 'Email', 'Phone', 'Role'],
                 list: store.list,
-            }" @delete-item="handleDelete" @edit-item="handleEdit" />
+            }" @delete-item="handleDelete" @edit-item="handleEdit" mode="member" />
         </div>
     </div>
 </template>
@@ -62,6 +66,7 @@ export default {
             Email: '',
             Phone: '',
             Role: '',
+            Password: '',
         })
 
         const errors = reactive({
@@ -69,6 +74,7 @@ export default {
             Email: '',
             Phone: '',
             Role: '',
+            Password: '',
         })
 
         const isEditing = ref(false)
@@ -77,7 +83,6 @@ export default {
         function validateForm() {
             let valid = true
 
-            // Reset errors
             Object.keys(errors).forEach((key) => (errors[key] = ''))
 
             if (!form.Name.trim()) {
@@ -106,18 +111,28 @@ export default {
                 valid = false
             }
 
+            if (!isEditing.value) {
+                if (!form.Password.trim()) {
+                    errors.Password = 'Password is required.'
+                    valid = false
+                } else if (form.Password.length < 6) {
+                    errors.Password = 'Password must be at least 6 characters.'
+                    valid = false
+                }
+            }
+
             return valid
         }
 
         function submitForm() {
             if (!validateForm()) return
 
-            const { Name, Email, Phone, Role } = form
+            const { Name, Email, Phone, Role, Password } = form
 
             if (isEditing.value) {
                 store.updateMem(editId.value, { Name, Email, Phone, Role })
             } else {
-                store.addMem({ Name, Email, Phone, Role })
+                store.addMem({ Name, Email, Phone, Role, Password })
             }
 
             resetForm()
@@ -134,6 +149,7 @@ export default {
             Object.assign(form, item)
             isEditing.value = true
             editId.value = item.id
+            form.Password = '' // Do not fill password when editing
         }
 
         function resetForm() {
@@ -141,10 +157,10 @@ export default {
             form.Email = ''
             form.Phone = ''
             form.Role = ''
+            form.Password = ''
             isEditing.value = false
             editId.value = null
 
-            // Clear errors
             Object.keys(errors).forEach((key) => (errors[key] = ''))
         }
 

@@ -20,8 +20,9 @@ export const useBookStore = defineStore('books', {
                         id: bid,
                         title,
                         author,
-                        copies_total,
-                        copies_available
+                        AvailableCopies: copies_available,
+                        TotalCopies: copies_total,
+
                     }))
                     : []
             } catch (err) {

@@ -1,15 +1,12 @@
-import axios from 'axios'
+import api from '@/services/api'
 
-const API = import.meta.env.VITE_API + '/book'
+
+const API = '/book'
 
 export default {
-    getAll: () => axios.get(API),
-
-    getById: (id) => axios.get(`${API}/${id}`),
-
-    add: (data) => axios.post(`${API}`, data),
-
-    update: (id, data) => axios.patch(`${API}/${id}`, data),
-
-    delete: (id) => axios.delete(`${API}/${id}`),
+    getAll: () => api.get(API),
+    getById: (id) => api.get(`${API}/${id}`),
+    add: (data) => api.post(`${API}`, data),
+    update: (id, data) => api.patch(`${API}/${id}`, data),
+    delete: (id) => api.delete(`${API}/${id}`),
 }

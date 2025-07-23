@@ -15,14 +15,13 @@ export const useMemStore = defineStore('members', {
             try {
                 const response = await memService.getAll()
                 this.list = Array.isArray(response.data?.data)
-                    ? response.data.data.map(({ mem_id, name, email, phone, role }) => ({
-                        id: mem_id,
-                        Name: name,
-                        Email: email,
-                        Phone: phone,
-                        Role: role,
-                    }))
-                    : []
+                    ? response.data.data.map(({ id, name, email, phone, role }) => ({
+                        id,
+                        name,
+                        email,
+                        phone,
+                        role
+                    })) : []
             } catch (err) {
                 this.error = err
                 console.error('Error fetching members:', err)

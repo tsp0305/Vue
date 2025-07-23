@@ -1,17 +1,16 @@
 <template>
     <div class="wrapper">
-
+        <!-- Controls -->
         <div class="controls">
             <label>Sort:</label>
             <input type="radio" id="asc" value="asc" v-model="sortOrder" />
             <label for="asc">Asc</label>
             <input type="radio" id="desc" value="desc" v-model="sortOrder" />
             <label for="desc">Desc</label>
-
             <input type="text" v-model="search" placeholder="Search..." />
         </div>
 
-
+        <!-- Table -->
         <table>
             <thead>
                 <tr>
@@ -22,21 +21,41 @@
                             {{ sortOrder === 'asc' ? '▲' : '▼' }}
                         </span>
                     </th>
-                    <th>Action</th>
+
+                    <th v-if="!isHome && isAdminOrStaff">Admin Actions</th>
+
+                    <th v-if="mode === 'book'">Borrow/Return</th>
                 </tr>
             </thead>
-            <tbody>
+
+            <tbody v-if="paginatedList.length">
                 <tr v-for="(item, index) in paginatedList" :key="item.id">
                     <td v-for="(field, i) in table.header" :key="i">{{ item[field] }}</td>
-                    <td>
+
+                    <!-- Admin actions -->
+                    <td v-if="!isHome && isAdminOrStaff">
                         <button @click="$emit('edit-item', item)">Edit</button>
                         <button @click="$emit('delete-item', item.id)">Delete</button>
+                    </td>
+
+                    <!-- Borrow/Return -->
+                    <td v-if="mode === 'book'">
+                        <button @click="$emit('borrow', item)">Borrow</button>
+                        <button @click="$emit('return', item)">Return</button>
+                    </td>
+                </tr>
+            </tbody>
+
+            <tbody v-else>
+                <tr>
+                    <td :colspan="table.header.length + 2" style="text-align: center">
+                        No record found.
                     </td>
                 </tr>
             </tbody>
         </table>
 
-
+        <!-- Pagination -->
         <div class="pagination">
             <button @click="previous" :disabled="curr === 1">Prev</button>
             <span>Page {{ totalpg ? curr : 0 }} of {{ totalpg }}</span>
@@ -46,18 +65,30 @@
 </template>
 
 <script setup>
-import { watch } from 'vue'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { useAuthStore } from '@/stores/authStore'
+import { useRoute } from 'vue-router'
 
+const store = useAuthStore()
+const route = useRoute()
+const isHome = computed(() => route.path === '/')
 const props = defineProps({
-    table: Object
+    table: Object,
+    mode: {
+        type: String,
+        default: 'book'
+    }
 })
 
 const sortOrder = ref('')
 const selectedOption = ref('')
 const search = ref('')
 const curr = ref(1)
-const nrow = 3
+const nrow = 7
+
+const isAdminOrStaff = computed(() =>
+    ['Admin', 'Staff'].includes(store.user?.role)
+)
 
 watch(search, () => {
     curr.value = 1
@@ -73,14 +104,11 @@ function sortByColumn(column) {
 }
 
 const filteredList = computed(() => {
-
     let copy = props.table.list.map((item) => ({ ...item }))
-
-
     const val = search.value.toLowerCase()
 
-    copy = copy.filter(item =>
-        Object.values(item).some(i =>
+    copy = copy.filter((item) =>
+        Object.values(item).some((i) =>
             String(i).toLowerCase().includes(val)
         )
     )
@@ -88,13 +116,11 @@ const filteredList = computed(() => {
     return copy.sort((a, b) => a.id - b.id)
 })
 
-const totalpg = computed(() => {
-
-    return Math.ceil(filteredList.value.length / nrow)
-})
+const totalpg = computed(() =>
+    Math.ceil(filteredList.value.length / nrow)
+)
 
 const paginatedList = computed(() => {
-
     const start = (curr.value - 1) * nrow
     const end = start + nrow
     let paged = filteredList.value.slice(start, end)
@@ -150,6 +176,7 @@ td {
 
 th {
     background-color: #1a1818;
+    color: white;
 }
 
 button {
